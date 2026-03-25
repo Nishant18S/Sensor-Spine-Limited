@@ -19,7 +19,7 @@ interface ProductsProps {
   apiBaseUrl?: string;
 }
 
-const Products: React.FC<ProductsProps> = ({ onProductClick, apiBaseUrl = 'http://localhost:5000' }) => {
+const Products: React.FC<ProductsProps> = ({ onProductClick, apiBaseUrl = 'https://sensor-spine-limited-hopt.vercel.app' }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sliderIndices, setSliderIndices] = useState<Record<string, number>>({});
