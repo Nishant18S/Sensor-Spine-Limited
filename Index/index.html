@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENSORSPINE — Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07090f;
+  --surface:   #0d1017;
+  --surface2:  #111520;
+  --border:    rgba(255,255,255,0.07);
+  --border-hi: rgba(0,210,230,0.35);
+  --cyan:      #00d2e6;
+  --cyan-dim:  rgba(0,210,230,0.12);
+  --cyan-glow: rgba(0,210,230,0.25);
+  --red:       #ff4d6d;
+  --red-dim:   rgba(255,77,109,0.12);
+  --green:     #22d48e;
+  --green-dim: rgba(34,212,142,0.1);
+  --amber:     #f5a623;
+  --text:      #eef0f7;
+  --text2:     #7a8199;
+  --text3:     #3d4560;
+  --radius:    14px;
+  --radius-sm: 9px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,210,230,0.3); border-radius: 4px; }
+
+/* ── Animated background grid ──────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,210,230,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,210,230,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 900px; height: 500px;
+  background: radial-gradient(ellipse, rgba(0,180,210,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(7,9,15,0.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 66px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--cyan-dim);
+  border: 1px solid var(--border-hi);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+.logo-icon::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(0,210,230,0.15));
+}
+
+.logo-icon svg { width: 18px; height: 18px; color: var(--cyan); }
+
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.logo-text span:first-child { color: var(--cyan); }
+.logo-text span:last-child  { color: var(--text); }
+
+.badge-admin {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  padding: 3px 10px; border-radius: 100px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,210,230,0.2);
+  color: var(--cyan);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+/* ── Buttons ──────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none;
+  transition: all 0.18s cubic-bezier(.22,1,.36,1);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--cyan);
+  color: #07090f;
+  font-weight: 600;
+  box-shadow: 0 0 0 0 var(--cyan-glow);
+}
+.btn-primary:hover {
+  background: #00e8ff;
+  box-shadow: 0 4px 24px var(--cyan-glow);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(255,77,109,0.2);
+}
+.btn-danger:hover {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+.btn-edit {
+  background: rgba(99,130,255,0.1);
+  color: #7d9bff;
+  border: 1px solid rgba(99,130,255,0.2);
+}
+.btn-edit:hover {
+  background: rgba(99,130,255,0.22);
+  color: #a8bcff;
+}
+
+.btn-link {
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid var(--border-hi);
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.btn-link:hover {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  width: 34px; height: 34px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+}
+
+/* ── Main layout ──────────────────────────────── */
+.main {
+  position: relative; z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 32px 80px;
+}
+
+/* ── Stats bar ────────────────────────────────── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: rgba(255,255,255,0.12); }
+
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent, var(--cyan)), transparent);
+}
+
+.stat-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 6px;
+}
+
+/* ── Page header ──────────────────────────────── */
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 32px; font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.page-sub {
+  font-size: 14px;
+  color: var(--text2);
+  margin-top: 5px;
+}
+
+/* ── Filter / search row ──────────────────────── */
+.toolbar {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative; flex: 1; min-width: 200px;
+}
+
+.search-wrap svg {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 15px; height: 15px;
+  color: var(--text3);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--border-hi); }
+.search-input::placeholder { color: var(--text3); }
+
+.filter-chip {
+  padding: 8px 16px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; border: none;
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  transition: all 0.18s;
+  font-family: 'DM Sans', sans-serif;
+}
+.filter-chip:hover { color: var(--text); border-color: rgba(255,255,255,0.12); }
+.filter-chip.active {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  border-color: rgba(0,210,230,0.3);
+}
+
+/* ── Products grid ────────────────────────────── */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  animation: cardIn 0.4s cubic-bezier(.22,1,.36,1) both;
+}
+.product-card:hover {
+  border-color: rgba(255,255,255,0.11);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(.22,1,.36,1);
+}
+.product-card:hover .card-image img { transform: scale(1.06); }
+
+.card-image-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; color: var(--text3);
+}
+
+.card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(7,9,15,0.7) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.card-actions {
+  position: absolute; top: 10px; right: 10px;
+  display: flex; gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.product-card:hover .card-actions { opacity: 1; }
+
+.cat-badge {
+  position: absolute; top: 10px; left: 10px;
+  padding: 4px 11px; border-radius: 100px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,210,230,0.25);
+  background: rgba(0,0,0,0.5);
+  color: var(--cyan);
+}
+
+.link-badge {
+  position: absolute; bottom: 10px; right: 10px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(34,212,142,0.3);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.link-badge:hover {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.card-body { padding: 18px 20px 20px; }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 7px;
+  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.card-desc {
+  font-size: 13px; color: var(--text2);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.card-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--text3);
+  display: flex; align-items: center; gap: 5px;
+}
+
+.card-bottom-actions {
+  display: flex; gap: 7px;
+}
+
+/* ── Connection banner ────────────────────────── */
+.conn-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 28px;
+  font-size: 13px;
+}
+
+.conn-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  flex-shrink: 0;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.conn-url {
+  font-family: 'DM Mono', monospace;
+  color: var(--cyan); font-size: 12px;
+  margin-left: 4px;
+}
+
+/* ── Loading ──────────────────────────────────── */
+.loading-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 2px solid rgba(0,210,230,0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Empty state ──────────────────────────────── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  width: 72px; height: 72px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  color: var(--text3);
+}
+
+/* ── Error state ──────────────────────────────── */
+.error-state {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border: 1px solid rgba(255,77,109,0.2);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+}
+
+/* ── Modal overlay ────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.modal-overlay.open {
+  opacity: 1; pointer-events: all;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  width: 100%; max-width: 820px;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+  transform: scale(0.97) translateY(10px);
+  transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+}
+
+.modal-overlay.open .modal-box {
+  transform: scale(1) translateY(0);
+}
+
+.modal-header {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, rgba(0,210,230,0.04) 0%, transparent 60%);
+  flex-shrink: 0;
+}
+
+.modal-title-wrap { display: flex; align-items: center; gap: 12px; }
+
+.modal-title-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,210,230,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cyan);
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.modal-close {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+.modal-body {
+  overflow-y: auto;
+  padding: 28px;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px;
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+/* ── Form elements ────────────────────────────── */
+.form-section {
+  margin-bottom: 28px;
+}
+
+.form-section-label {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.form-section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-label {
+  font-size: 12px; font-weight: 500;
+  color: var(--text2);
+  display: flex; align-items: center; gap: 5px;
+}
+
+.required { color: var(--red); }
+
+.form-input,
+.form-select,
+.form-textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 11px 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--border-hi);
+  box-shadow: 0 0 0 3px rgba(0,210,230,0.08);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder { color: var(--text3); }
+
+.form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8199' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.form-select option { background: #111520; }
+
+/* ── Feature/spec items ───────────────────────── */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 20px; }
+
+.tag-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px 5px 12px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,210,230,0.2);
+  border-radius: 100px;
+  font-size: 12px; color: var(--cyan);
+}
+
+.tag-item button {
+  width: 16px; height: 16px;
+  background: rgba(0,210,230,0.2);
+  border: none; border-radius: 50%;
+  color: var(--cyan);
+  font-size: 10px; font-weight: 700;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.tag-item button:hover { background: rgba(255,77,109,0.4); color: var(--red); }
+
+.spec-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.spec-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--cyan);
+  font-weight: 500;
+  min-width: 120px;
+  padding: 2px 8px;
+  background: var(--cyan-dim);
+  border-radius: 4px;
+}
+
+.spec-val { flex: 1; color: var(--text); }
+
+.add-row {
+  display: flex; gap: 8px; align-items: center;
+}
+
+/* ── Upload area ──────────────────────────────── */
+.upload-area {
+  border: 1.5px dashed rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-area:hover {
+  border-color: rgba(0,210,230,0.4);
+  background: var(--cyan-dim);
+}
+
+.upload-icon {
+  width: 44px; height: 44px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  color: var(--text3);
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.img-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.img-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.img-thumb .remove-btn {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px;
+  background: rgba(0,0,0,0.7);
+  border: none; border-radius: 50%;
+  color: #fff; font-size: 11px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+.img-thumb:hover .remove-btn { opacity: 1; }
+
+/* ── Delete confirm dialog ────────────────────── */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.confirm-overlay.open { opacity: 1; pointer-events: all; }
+
+.confirm-box {
+  background: var(--surface);
+  border: 1px solid rgba(255,77,109,0.2);
+  border-radius: 18px;
+  padding: 32px;
+  max-width: 400px; width: 90%;
+  text-align: center;
+  transform: scale(0.96); transition: transform 0.25s cubic-bezier(.22,1,.36,1);
+  box-shadow: 0 0 0 1px rgba(255,77,109,0.08), 0 32px 80px rgba(0,0,0,0.6);
+}
+.confirm-overlay.open .confirm-box { transform: scale(1); }
+
+.confirm-icon {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--red-dim);
+  border: 1px solid rgba(255,77,109,0.25);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  color: var(--red);
+}
+
+/* ── Toast ────────────────────────────────────── */
+.toast-wrap {
+  position: fixed; bottom: 28px; right: 28px; z-index: 99999;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px; color: var(--text);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  min-width: 240px;
+  animation: toastIn 0.3s cubic-bezier(.22,1,.36,1);
+  pointer-events: all;
+}
+@keyframes toastIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error   { border-left: 3px solid var(--red);   }
+.toast.info    { border-left: 3px solid var(--cyan);  }
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 768px) {
+  .main { padding: 20px 16px 60px; }
+  .header { padding: 0 16px; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .modal-body { padding: 20px; }
+  .modal-header { padding: 18px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────── -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text"><span>SENSOR</span><span>SPINE</span></div>
+    </div>
+    <div class="badge-admin">Admin</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="loadAllProducts()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      Refresh
+    </button>
+    <a href="/" class="btn btn-ghost btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      View Site
+    </a>
+    <button class="btn btn-primary btn-sm" onclick="showAddForm()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Product
+    </button>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Connection banner -->
+  <div class="conn-banner" id="connBanner">
+    <div class="conn-dot" id="connDot"></div>
+    <span style="color:var(--text2);font-size:13px;">API Endpoint:</span>
+    <code class="conn-url" id="connUrl"></code>
+    <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="testConnection()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/></svg>
+      Test
+    </button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card" style="--accent:var(--cyan)">
+      <div class="stat-label">Total Products</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub">in catalog</div>
+    </div>
+    <div class="stat-card" style="--accent:#10b981">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value" id="statCats">5</div>
+      <div class="stat-sub">active sectors</div>
+    </div>
+    <div class="stat-card" style="--accent:#8b5cf6">
+      <div class="stat-label">Latest Added</div>
+      <div class="stat-value" style="font-size:16px;line-height:1.4;" id="statLatest">—</div>
+      <div class="stat-sub" id="statLatestDate">—</div>
+    </div>
+    <div class="stat-card" style="--accent:var(--amber)">
+      <div class="stat-label">With Images</div>
+      <div class="stat-value" id="statImages">—</div>
+      <div class="stat-sub">have photos</div>
+    </div>
+  </div>
+
+  <!-- Page header + toolbar -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Products</h1>
+      <p class="page-sub">Manage your full product catalog — create, edit, or remove entries.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search products..." oninput="filterProducts()">
+    </div>
+    <button class="filter-chip active" data-cat="All" onclick="setCatFilter(this,'All')">All</button>
+    <button class="filter-chip" data-cat="AriTech" onclick="setCatFilter(this,'AriTech')">AgriTech</button>
+    <button class="filter-chip" data-cat="HealthTech" onclick="setCatFilter(this,'HealthTech')">HealthTech</button>
+    <button class="filter-chip" data-cat="EduTech" onclick="setCatFilter(this,'EduTech')">EduTech</button>
+    <button class="filter-chip" data-cat="IoT" onclick="setCatFilter(this,'IoT')">IoT</button>
+    <button class="filter-chip" data-cat="AI/ML" onclick="setCatFilter(this,'AI/ML')">AI / ML</button>
+  </div>
+
+  <!-- Products grid -->
+  <div class="products-grid" id="productsGrid">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p style="color:var(--text2);font-size:14px;">Loading products…</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Add/Edit Modal ────────────────────────────────────── -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <span class="modal-title" id="modalTitle">Add New Product</span>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <input type="hidden" id="productId">
+
+        <!-- Basic info -->
+        <div class="form-section">
+          <div class="form-section-label">Basic Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Title <span class="required">*</span></label>
+              <input type="text" id="editTitle" class="form-input" placeholder="Product name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category <span class="required">*</span></label>
+              <select id="editCategory" class="form-select" required>
+                <option value="AriTech">AgriTech — Augmented Reality</option>
+                <option value="HealthTech">HealthTech — Healthcare Sensors</option>
+                <option value="EduTech">EduTech — Educational Kits</option>
+                <option value="IoT">IoT — Internet of Things</option>
+                <option value="AI/ML">AI/ML — Artificial Intelligence</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Description <span class="required">*</span></label>
+              <textarea id="editDescription" class="form-textarea" placeholder="Describe this product…" required></textarea>
+            </div>
+            <!-- NEW: Deployable Link Field -->
+            <div class="form-group full">
+              <label class="form-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                Deployable Link <span style="font-weight:400;color:var(--text3);font-size:11px;">(Optional)</span>
+              </label>
+              <input type="url" id="editDeployableLink" class="form-input" placeholder="https://your-product.com/demo or https://github.com/your-repo">
+              <div style="font-size:11px;color:var(--text3);margin-top:5px;">
+                <i class="info-icon">ℹ️</i> Add a link to your product demo, GitHub repository, or live deployment. This will appear on the product card.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="form-section">
+          <div class="form-section-label">Key Features</div>
+          <div class="tag-list" id="editFeaturesList"></div>
+          <div class="add-row">
+            <input type="text" id="newFeatureInput" class="form-input" placeholder="Add a feature…" style="flex:1;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addFeature();}">
+            <button type="button" class="btn btn-ghost" onclick="addFeature()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Specifications -->
+        <div class="form-section">
+          <div class="form-section-label">Technical Specifications</div>
+          <div id="editSpecsList"></div>
+          <div class="add-row" style="gap:8px;">
+            <input type="text" id="newSpecKey" class="form-input" placeholder="Name" style="flex:0.8;">
+            <input type="text" id="newSpecValue" class="form-input" placeholder="Value" style="flex:1.2;">
+            <button type="button" class="btn btn-ghost" onclick="addSpec()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div class="form-section">
+          <div class="form-section-label">Product Images</div>
+          <div class="image-grid" id="existingImages"></div>
+          <div class="upload-area" onclick="document.getElementById('newImages').click()">
+            <div class="upload-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            </div>
+            <div style="font-size:14px;color:var(--text2);font-weight:500;">Drop images here or click to upload</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:4px;">PNG, JPG, WEBP up to 5MB each</div>
+            <input type="file" id="newImages" multiple accept="image/*" style="display:none;" onchange="handleImages(this.files)">
+          </div>
+          <div class="image-grid" id="newImagePreview" style="margin-top:10px;"></div>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeModal()" style="flex:1;">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('productForm').requestSubmit();" style="flex:2;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Product
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Confirm ───────────────────────────────────── -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </div>
+    <h3 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700;margin-bottom:8px;" id="confirmTitle">Delete Product?</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6;" id="confirmDesc">This action cannot be undone.</p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" style="flex:1;" id="confirmAction">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toasts ────────────────────────────────────────────── -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────
+const BASE = localStorage.getItem('sensorspine_base_url') || 'https://sensor-spine-limited-hopt.vercel.app';
+
+// ── State ──────────────────────────────────────────────────
+let allProducts  = [];
+let activeCat    = 'All';
+let editFeatures = [];
+let editSpecs    = [];
+let existingImgs = [];
+let newImgFiles  = [];
+let newImgPreviews = [];
+let currentDeployableLink = '';
+
+// ── Init ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('connUrl').textContent = BASE + '/api/products';
+  testConnection();
+  loadAllProducts();
+});
+
+// ── Toast ──────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const icons = {
+    success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  };
+  const colors = { success: 'var(--green)', error: 'var(--red)', info: 'var(--cyan)' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span style="color:${colors[type]};flex-shrink:0;">${icons[type]}</span><span>${esc(msg)}</span>`;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.animation = 'none'; t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 3200);
+}
+
+// ── Connection test ────────────────────────────────────────
+async function testConnection() {
+  const dot = document.getElementById('connDot');
+  try {
+    const r = await fetch(`${BASE}/api/health`);
+    dot.style.background = r.ok ? 'var(--green)' : 'var(--amber)';
+    dot.style.boxShadow  = r.ok ? '0 0 6px var(--green)' : '0 0 6px var(--amber)';
+  } catch {
+    dot.style.background = 'var(--red)';
+    dot.style.boxShadow  = '0 0 6px var(--red)';
+  }
+}
+
+// ── Load products ──────────────────────────────────────────
+async function loadAllProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = `<div class="loading-state"><div class="spinner"></div><p style="color:var(--text2);font-size:14px;">Loading products…</p></div>`;
+  try {
+    const r    = await fetch(`${BASE}/api/products`);
+    const data = await r.json();
+    if (data.success) {
+      allProducts = data.products || [];
+      updateStats();
+      renderGrid();
+    } else {
+      showError('API returned an error.');
+    }
+  } catch (e) {
+    showError(`Cannot connect to <code style="color:var(--cyan);font-family:'DM Mono',monospace;">${BASE}</code>`);
+  }
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent  = allProducts.length;
+  document.getElementById('statImages').textContent = allProducts.filter(p => p.images?.length).length;
+  if (allProducts.length) {
+    const latest = [...allProducts].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    const el = document.getElementById('statLatest');
+    el.textContent = latest.title.length > 14 ? latest.title.slice(0,14)+'…' : latest.title;
+    document.getElementById('statLatestDate').textContent = new Date(latest.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+}
+
+function renderGrid() {
+  const q     = document.getElementById('searchInput').value.toLowerCase();
+  const items = allProducts.filter(p => {
+    const catOk = activeCat === 'All' || p.category === activeCat;
+    const qOk   = !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
+    return catOk && qOk;
+  });
+  const grid = document.getElementById('productsGrid');
+  if (!items.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <h3 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">No products found</h3>
+        <p style="color:var(--text2);font-size:14px;margin-bottom:20px;">${q ? 'Try a different search term.' : 'Click "Add Product" to create your first entry.'}</p>
+        <button class="btn btn-primary" onclick="showAddForm()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Product
+        </button>
+      </div>`;
+    return;
+  }
+  grid.innerHTML = items.map((p, idx) => `
+    <div class="product-card" style="animation-delay:${idx * 50}ms;">
+      <div class="card-image">
+        ${p.images?.[0]
+          ? `<img src="${esc(p.images[0])}" alt="${esc(p.title)}" loading="lazy">`
+          : `<div class="card-image-placeholder"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span style="font-size:12px;">No image</span></div>`
+        }
+        <div class="card-overlay"></div>
+        <div class="cat-badge">${esc(p.category)}</div>
+        ${p.deployableLink ? `<a href="${esc(p.deployableLink)}" target="_blank" class="link-badge" onclick="event.stopPropagation()">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Demo
+        </a>` : ''}
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="editProduct('${p._id}')" title="Edit">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDelete('${p._id}','${esc(p.title)}')" title="Delete">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${esc(p.title)}</div>
+        <div class="card-desc">${esc(p.description)}</div>
+        <div class="card-meta">
+          <div class="card-date">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${new Date(p.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+          </div>
+          <div class="card-bottom-actions">
+            <button class="btn btn-edit btn-sm" onclick="editProduct('${p._id}')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showError(msg) {
+  document.getElementById('productsGrid').innerHTML = `
+    <div class="error-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p style="color:var(--text2);margin-bottom:16px;">${msg}</p>
+      <button class="btn btn-ghost" onclick="loadAllProducts()">Retry</button>
+    </div>`;
+}
+
+function setCatFilter(el, cat) {
+  activeCat = cat;
+  document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+
+function filterProducts() { renderGrid(); }
+
+// ── Show add form ──────────────────────────────────────────
+function showAddForm() {
+  document.getElementById('modalTitle').textContent = 'Add New Product';
+  document.getElementById('productId').value = '';
+  document.getElementById('editTitle').value = '';
+  document.getElementById('editCategory').value = 'AriTech';
+  document.getElementById('editDescription').value = '';
+  document.getElementById('editDeployableLink').value = '';
+  editFeatures = []; editSpecs = []; existingImgs = []; newImgFiles = []; newImgPreviews = [];
+  renderFeatures(); renderSpecs(); renderExistingImgs(); renderNewPreviews();
+  openModal();
+}
+
+// ── Edit product ───────────────────────────────────────────
+async function editProduct(id) {
+  try {
+    const r    = await fetch(`${BASE}/api/products/${id}`);
+    const data = await r.json();
+    if (!data.success) throw new Error(data.error);
+    const p = data.product;
+    document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.getElementById('productId').value       = p._id;
+    document.getElementById('editTitle').value       = p.title;
+    document.getElementById('editCategory').value    = p.category;
+    document.getElementById('editDescription').value = p.description;
+    document.getElementById('editDeployableLink').value = p.deployableLink || '';
+    editFeatures = p.features || [];
+    editSpecs    = Object.entries(p.specifications || {}).map(([k,v]) => ({k,v}));
+    existingImgs = p.images || [];
+    newImgFiles  = []; newImgPreviews = [];
+    renderFeatures(); renderSpecs(); renderExistingImgs(); renderNewPreviews();
+    openModal();
+  } catch (e) { toast('Failed to load product.', 'error'); }
+}
+
+// ── Save product ───────────────────────────────────────────
+async function saveProduct(e) {
+  e.preventDefault();
+  const id   = document.getElementById('productId').value;
+  const fd   = new FormData();
+  fd.append('title',          document.getElementById('editTitle').value.trim());
+  fd.append('category',       document.getElementById('editCategory').value);
+  fd.append('description',    document.getElementById('editDescription').value.trim());
+  fd.append('features',       JSON.stringify(editFeatures));
+  fd.append('specifications', JSON.stringify(Object.fromEntries(editSpecs.map(s => [s.k, s.v]))));
+  fd.append('existingImages', JSON.stringify(existingImgs));
+  
+  // Add deployable link if provided
+  const deployableLink = document.getElementById('editDeployableLink').value.trim();
+  if (deployableLink) {
+    fd.append('deployableLink', deployableLink);
+  }
+  
+  newImgFiles.forEach(f => fd.append('images', f));
+  try {
+    const r    = await fetch(id ? `${BASE}/api/products/${id}` : `${BASE}/api/products`, { method: id ? 'PUT' : 'POST', body: fd });
+    const data = await r.json();
+    if (!data.success) throw new Error(data.error);
+    toast(id ? 'Product updated successfully.' : 'Product created successfully.', 'success');
+    closeModal();
+    loadAllProducts();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ── Delete product ─────────────────────────────────────────
+let pendingDeleteId = null;
+function confirmDelete(id, title) {
+  pendingDeleteId = id;
+  document.getElementById('confirmTitle').textContent = 'Delete "' + title + '"?';
+  document.getElementById('confirmDesc').textContent  = 'This will permanently remove the product and all its images. This action cannot be undone.';
+  document.getElementById('confirmAction').onclick    = doDelete;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); pendingDeleteId = null; }
+async function doDelete() {
+  if (!pendingDeleteId) return;
+  closeConfirm();
+  try {
+    const r    = await fetch(`${BASE}/api/products/${pendingDeleteId}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (!data.success) throw new Error(data.error);
+    toast('Product deleted.', 'success');
+    loadAllProducts();
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ── Feature helpers ────────────────────────────────────────
+function addFeature() {
+  const inp = document.getElementById('newFeatureInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  editFeatures.push(val); inp.value = '';
+  renderFeatures();
+}
+function removeFeature(i) { editFeatures.splice(i,1); renderFeatures(); }
+function renderFeatures() {
+  const el = document.getElementById('editFeaturesList');
+  el.innerHTML = editFeatures.length ? editFeatures.map((f,i) => `
+    <div class="tag-item">
+      <span>${esc(f)}</span>
+      <button type="button" onclick="removeFeature(${i})">×</button>
+    </div>`).join('') : `<p style="font-size:12px;color:var(--text3);padding:4px 0;">No features added yet.</p>`;
+}
+
+// ── Spec helpers ───────────────────────────────────────────
+function addSpec() {
+  const k = document.getElementById('newSpecKey').value.trim();
+  const v = document.getElementById('newSpecValue').value.trim();
+  if (!k || !v) return;
+  editSpecs.push({k,v});
+  document.getElementById('newSpecKey').value   = '';
+  document.getElementById('newSpecValue').value = '';
+  renderSpecs();
+}
+function removeSpec(i) { editSpecs.splice(i,1); renderSpecs(); }
+function renderSpecs() {
+  const el = document.getElementById('editSpecsList');
+  el.innerHTML = editSpecs.length ? editSpecs.map((s,i) => `
+    <div class="spec-item">
+      <span class="spec-key">${esc(s.k)}</span>
+      <span class="spec-val">${esc(s.v)}</span>
+      <button type="button" onclick="removeSpec(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 6px;border-radius:4px;font-size:14px;transition:color 0.15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
+    </div>`).join('') : `<p style="font-size:12px;color:var(--text3);padding:4px 0 10px;">No specifications added yet.</p>`;
+}
+
+// ── Image helpers ──────────────────────────────────────────
+function renderExistingImgs() {
+  const el = document.getElementById('existingImages');
+  el.innerHTML = existingImgs.map((src,i) => `
+    <div class="img-thumb">
+      <img src="${esc(src)}" alt="">
+      <button type="button" class="remove-btn" onclick="removeExisting(${i})">×</button>
+    </div>`).join('');
+}
+function removeExisting(i) { existingImgs.splice(i,1); renderExistingImgs(); }
+
+function handleImages(files) {
+  Array.from(files).forEach(file => {
+    if (file.size > 5*1024*1024) { toast(`${file.name} exceeds 5MB.`, 'error'); return; }
+    newImgFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = e => { newImgPreviews.push(e.target.result); renderNewPreviews(); };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('newImages').value = '';
+}
+function removeNew(i) { newImgFiles.splice(i,1); newImgPreviews.splice(i,1); renderNewPreviews(); }
+function renderNewPreviews() {
+  document.getElementById('newImagePreview').innerHTML = newImgPreviews.map((src,i) => `
+    <div class="img-thumb">
+      <img src="${src}" alt="">
+      <button type="button" class="remove-btn" onclick="removeNew(${i})">×</button>
+    </div>`).join('');
+}
+
+// ── Modal helpers ──────────────────────────────────────────
+function openModal()  { document.getElementById('productModal').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal() { document.getElementById('productModal').classList.remove('open'); document.body.style.overflow=''; newImgFiles=[]; newImgPreviews=[]; }
+
+document.getElementById('productModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { closeModal(); closeConfirm(); } });
+
+// ── Utility ────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
