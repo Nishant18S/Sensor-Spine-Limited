@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENSORSPINE Admin Panel - Add New Product</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1729 0%, #001f3f 100%);
+        }
+        
+        .font-space-grotesk {
+            font-family: 'Space Grotesk', monospace;
+        }
+        
+        .file-preview {
+            transition: all 0.3s ease;
+        }
+        
+        .file-preview:hover {
+            transform: scale(1.05);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1f1f1f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #06b6d4;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0891b2;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        .config-panel {
+            transition: all 0.3s ease;
+        }
+        
+        .config-panel:hover {
+            border-color: #06b6d4;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <div class="bg-zinc-950/95 backdrop-blur-lg border-b border-zinc-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-10 h-10 bg-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                        <i class="fas fa-sensor text-zinc-950 text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-space-grotesk text-2xl font-semibold tracking-tighter text-white">SENSOR</span>
+                        <span class="font-space-grotesk text-2xl font-semibold tracking-tighter bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">SPINE</span>
+                        <span class="ml-3 text-xs bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full">Admin Panel</span>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="showConfigPanel()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition text-sm font-medium">
+                        <i class="fas fa-cog mr-2"></i> Configure
+                    </button>
+                    <a href="/" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition text-sm font-medium">
+                        <i class="fas fa-home mr-2"></i> View Site
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-12">
+        <!-- Configuration Status Banner -->
+        <div id="configBanner" class="mb-6"></div>
+
+        <!-- Page Title -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center gap-2 bg-cyan-500/10 text-cyan-400 px-4 py-2 rounded-full text-sm mb-4">
+                <i class="fas fa-plus-circle"></i>
+                <span>Create New Product</span>
+            </div>
+            <h1 class="text-5xl font-bold font-space-grotesk text-white mb-4">Add New Product</h1>
+            <p class="text-zinc-400 max-w-2xl mx-auto">Fill out the form below to add a new product to the SENSORSPINE catalog. All fields with * are required.</p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-white/10 overflow-hidden">
+            <div class="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 p-6 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-pen-fancy text-cyan-400 text-2xl"></i>
+                    <h2 class="text-2xl font-bold text-white">Product Information</h2>
+                </div>
+                <p class="text-zinc-400 text-sm mt-2 ml-10">Enter all details about your new product</p>
+            </div>
+
+            <form id="productForm" class="p-8 space-y-8">
+                <!-- Base URL Configuration Section -->
+                <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-6 config-panel">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-globe text-cyan-400 text-xl"></i>
+                            <h3 class="text-lg font-semibold text-white">Base URL Configuration</h3>
+                        </div>
+                        <button type="button" onclick="toggleConfig()" class="text-zinc-400 hover:text-white">
+                            <i class="fas fa-chevron-down" id="configToggleIcon"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="configPanel">
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-400 mb-2">API Base URL</label>
+                            <div class="flex gap-3">
+                                <input type="text" id="baseUrl" 
+                                    class="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none font-mono text-sm"
+                                    placeholder="http://localhost:5000">
+                                <button type="button" onclick="saveBaseUrl()"
+                                    class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-zinc-950 rounded-xl font-semibold transition">
+                                    <i class="fas fa-save mr-2"></i> Save
+                                </button>
+                            </div>
+                            <p class="text-xs text-zinc-500 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Current: <span id="currentBaseUrl" class="text-cyan-400">http://localhost:5000</span>
+                            </p>
+                        </div>
+                        
+                        <div class="flex gap-3 mt-4">
+                            <button type="button" onclick="testConnection()"
+                                class="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-white transition text-sm font-medium">
+                                <i class="fas fa-plug mr-2"></i> Test Connection
+                            </button>
+                            <button type="button" onclick="resetBaseUrl()"
+                                class="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl text-white transition text-sm font-medium">
+                                <i class="fas fa-undo mr-2"></i> Reset
+                            </button>
+                        </div>
+                        
+                        <div id="connectionStatus" class="text-sm mt-4"></div>
+                        <div id="apiInfo" class="text-xs text-zinc-500 space-y-1 mt-2 hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                        <i class="fas fa-info-circle text-cyan-400 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">Basic Information</h3>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-400 mb-2">Product Title *</label>
+                            <input type="text" id="title" required
+                                class="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition"
+                                placeholder="e.g., AriVision Pro AR Glasses">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-400 mb-2">Category *</label>
+                            <select id="category" required
+                                class="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition">
+                                <option value="AriTech">AriTech - Augmented Reality</option>
+                                <option value="HealthTech">HealthTech - Healthcare Sensors</option>
+                                <option value="EduTech">EduTech - Educational Kits</option>
+                                <option value="IoT">IoT - Internet of Things</option>
+                                <option value="AI/ML">AI/ML - Artificial Intelligence</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-2">Description *</label>
+                        <textarea id="description" rows="5" required
+                            class="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition resize-none"
+                            placeholder="Provide a detailed description of the product, including its purpose, technology, and key benefits..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                        <i class="fas fa-list-check text-cyan-400 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">Key Features</h3>
+                    </div>
+                    
+                    <div id="featuresList" class="space-y-3"></div>
+                    
+                    <div class="flex gap-3">
+                        <input type="text" id="newFeature" 
+                            class="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition"
+                            placeholder="Add a feature (e.g., 4K per eye resolution)"
+                            onkeypress="if(event.key === 'Enter') addFeature()">
+                        <button type="button" onclick="addFeature()"
+                            class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-zinc-950 rounded-xl font-semibold transition">
+                            <i class="fas fa-plus mr-2"></i> Add
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Specifications Section -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                        <i class="fas fa-microchip text-cyan-400 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">Technical Specifications</h3>
+                    </div>
+                    
+                    <div id="specsList" class="space-y-3"></div>
+                    
+                    <div class="grid md:grid-cols-3 gap-3">
+                        <input type="text" id="specKey" 
+                            class="px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition"
+                            placeholder="Specification name (e.g., Weight)">
+                        <input type="text" id="specValue" 
+                            class="px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white focus:border-cyan-500 focus:outline-none transition"
+                            placeholder="Value (e.g., 380g)">
+                        <button type="button" onclick="addSpecification()"
+                            class="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-zinc-950 rounded-xl font-semibold transition">
+                            <i class="fas fa-plus mr-2"></i> Add Spec
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                        <i class="fas fa-image text-cyan-400 text-xl"></i>
+                        <h3 class="text-lg font-semibold text-white">Product Images</h3>
+                        <span class="text-xs text-zinc-500">(Max 5 images)</span>
+                    </div>
+                    
+                    <div class="border-2 border-dashed border-zinc-700 rounded-2xl p-8 text-center hover:border-cyan-500 transition cursor-pointer"
+                         onclick="document.getElementById('imageInput').click()">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-zinc-600 mb-4"></i>
+                        <p class="text-zinc-400 mb-2">Click to upload images or drag and drop</p>
+                        <p class="text-xs text-zinc-500">PNG, JPG, JPEG, WEBP, GIF (Max 5MB each)</p>
+                        <input type="file" id="imageInput" multiple accept="image/*" class="hidden" onchange="handleImageUpload(this.files)">
+                    </div>
+                    
+                    <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"></div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="pt-6 border-t border-zinc-800">
+                    <div id="formMessage" class="mb-4"></div>
+                    <div class="flex gap-4">
+                        <button type="button" onclick="resetForm()"
+                            class="flex-1 px-6 py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-semibold transition">
+                            <i class="fas fa-undo mr-2"></i> Reset Form
+                        </button>
+                        <button type="submit"
+                            class="flex-1 px-6 py-4 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-zinc-950 rounded-xl font-semibold transition">
+                            <i class="fas fa-paper-plane mr-2"></i> Create Product
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Recent Products Section -->
+        <div class="mt-12">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-clock text-cyan-400 text-2xl"></i>
+                    <h2 class="text-2xl font-bold text-white">Recently Added Products</h2>
+                </div>
+                <button onclick="loadRecentProducts()" 
+                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm transition">
+                    <i class="fas fa-refresh mr-2"></i> Refresh
+                </button>
+            </div>
+            <div id="recentProducts" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-zinc-900/50 rounded-2xl p-8 text-center">
+                    <div class="loading-spinner w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p class="text-zinc-400">Loading recent products...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let features = [];
+        let specifications = [];
+        let selectedImages = [];
+        let imagePreviews = [];
+        let currentBaseUrl = localStorage.getItem('sensorspine_base_url') || 'http://localhost:5000';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('baseUrl').value = currentBaseUrl;
+            document.getElementById('currentBaseUrl').textContent = currentBaseUrl;
+            renderFeatures();
+            renderSpecifications();
+            renderImages();
+            updateConfigBanner();
+            testConnection(); // Auto test on load
+            loadRecentProducts();
+        });
+
+        document.getElementById('productForm').addEventListener('submit', handleSubmit);
+
+        function updateConfigBanner() {
+            const banner = document.getElementById('configBanner');
+            banner.innerHTML = `
+                <div class="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-link text-cyan-400"></i>
+                        <div class="flex-1">
+                            <span class="text-sm text-zinc-300">API Endpoint:</span>
+                            <code class="text-cyan-400 text-sm ml-2">${currentBaseUrl}/api/products</code>
+                        </div>
+                        <button onclick="testConnection()" class="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition">
+                            <i class="fas fa-sync-alt mr-1"></i> Test
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveBaseUrl() {
+            const newUrl = document.getElementById('baseUrl').value.trim();
+            if (newUrl) {
+                currentBaseUrl = newUrl.replace(/\/$/, '');
+                localStorage.setItem('sensorspine_base_url', currentBaseUrl);
+                document.getElementById('currentBaseUrl').textContent = currentBaseUrl;
+                updateConfigBanner();
+                testConnection();
+                showMessage('Base URL saved successfully!', 'success');
+            }
+        }
+
+        function resetBaseUrl() {
+            localStorage.removeItem('sensorspine_base_url');
+            currentBaseUrl = 'http://localhost:5000';
+            document.getElementById('baseUrl').value = currentBaseUrl;
+            document.getElementById('currentBaseUrl').textContent = currentBaseUrl;
+            updateConfigBanner();
+            testConnection();
+            showMessage('Base URL reset to default', 'info');
+        }
+
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            const icon = document.getElementById('configToggleIcon');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                panel.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Testing connection to ' + currentBaseUrl + '...</div>';
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(`${currentBaseUrl}/api/health`, {
+                    signal: controller.signal,
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = `
+                        <div class="text-green-400">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            ✅ Connected successfully!
+                            <div class="text-xs mt-2 text-zinc-400">
+                                Status: ${data.status}<br>
+                                MongoDB: ${data.mongodb}<br>
+                                Port: ${data.port || 5000}
+                            </div>
+                        </div>
+                    `;
+                    
+                    const apiInfo = document.getElementById('apiInfo');
+                    apiInfo.innerHTML = `
+                        <div class="mt-2 p-2 bg-green-500/10 rounded-lg">
+                            <i class="fas fa-check-circle text-green-400 mr-1"></i>
+                            API is ready at ${currentBaseUrl}/api/products
+                        </div>
+                    `;
+                    apiInfo.classList.remove('hidden');
+                } else {
+                    statusDiv.innerHTML = '<div class="text-red-400"><i class="fas fa-exclamation-circle mr-2"></i>⚠️ Server error. Check backend logs.</div>';
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                statusDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        ❌ Cannot connect to ${currentBaseUrl}
+                        <div class="text-xs mt-2 text-zinc-400">
+                            Error: ${error.message}<br><br>
+                            <strong>Solutions:</strong><br>
+                            1. Make sure backend is running: <code>npm run dev</code> in backend folder<br>
+                            2. Verify backend shows: "Server running on http://localhost:5000"<br>
+                            3. Open this page via http:// (not file://)<br>
+                            4. Run: <code>python -m http.server 5500</code> and open http://localhost:5500
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showConfigPanel() {
+            const configSection = document.querySelector('.config-panel');
+            configSection.scrollIntoView({ behavior: 'smooth' });
+            const panel = document.getElementById('configPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            }
+        }
+
+        function addFeature() {
+            const input = document.getElementById('newFeature');
+            const feature = input.value.trim();
+            if (feature) {
+                features.push(feature);
+                renderFeatures();
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function removeFeature(index) {
+            features.splice(index, 1);
+            renderFeatures();
+        }
+
+        function renderFeatures() {
+            const container = document.getElementById('featuresList');
+            if (features.length === 0) {
+                container.innerHTML = '<p class="text-zinc-500 text-sm text-center py-4">No features added yet. Click "Add" to add product features.</p>';
+                return;
+            }
+            
+            container.innerHTML = features.map((feature, index) => `
+                <div class="flex items-center gap-3 bg-zinc-800 rounded-xl p-3 group">
+                    <i class="fas fa-check-circle text-cyan-400 text-sm"></i>
+                    <span class="flex-1 text-white">${escapeHtml(feature)}</span>
+                    <button type="button" onclick="removeFeature(${index})" 
+                        class="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addSpecification() {
+            const key = document.getElementById('specKey').value.trim();
+            const value = document.getElementById('specValue').value.trim();
+            if (key && value) {
+                specifications.push({ key, value });
+                renderSpecifications();
+                document.getElementById('specKey').value = '';
+                document.getElementById('specValue').value = '';
+                document.getElementById('specKey').focus();
+            }
+        }
+
+        function removeSpecification(index) {
+            specifications.splice(index, 1);
+            renderSpecifications();
+        }
+
+        function renderSpecifications() {
+            const container = document.getElementById('specsList');
+            if (specifications.length === 0) {
+                container.innerHTML = '<p class="text-zinc-500 text-sm text-center py-4">No specifications added yet. Add technical details above.</p>';
+                return;
+            }
+            
+            container.innerHTML = specifications.map((spec, index) => `
+                <div class="flex items-center gap-3 bg-zinc-800 rounded-xl p-3 group">
+                    <i class="fas fa-cog text-cyan-400 text-sm"></i>
+                    <span class="text-cyan-400 font-medium min-w-[120px]">${escapeHtml(spec.key)}:</span>
+                    <span class="flex-1 text-white">${escapeHtml(spec.value)}</span>
+                    <button type="button" onclick="removeSpecification(${index})" 
+                        class="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function handleImageUpload(files) {
+            const maxImages = 5;
+            const remaining = maxImages - selectedImages.length;
+            
+            if (files.length > remaining) {
+                alert(`You can only upload up to ${maxImages} images. You have ${selectedImages.length} already selected.`);
+                return;
+            }
+            
+            Array.from(files).forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`Image ${file.name} exceeds 5MB limit.`);
+                    return;
+                }
+                
+                if (!file.type.match('image.*')) {
+                    alert(`File ${file.name} is not an image.`);
+                    return;
+                }
+                
+                selectedImages.push(file);
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreviews.push(e.target.result);
+                    renderImages();
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            document.getElementById('imageInput').value = '';
+        }
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            imagePreviews.splice(index, 1);
+            renderImages();
+        }
+
+        function renderImages() {
+            const container = document.getElementById('imagePreview');
+            if (imagePreviews.length === 0) {
+                container.innerHTML = '<p class="text-zinc-500 text-sm text-center col-span-full py-8">No images uploaded yet. Click above to add product images.</p>';
+                return;
+            }
+            
+            container.innerHTML = imagePreviews.map((preview, index) => `
+                <div class="relative group file-preview">
+                    <img src="${preview}" alt="Product ${index + 1}" class="w-full h-40 object-cover rounded-xl">
+                    <button type="button" onclick="removeImage(${index})"
+                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value.trim();
+            
+            if (!title) { showMessage('Please enter a product title', 'error'); return; }
+            if (!description) { showMessage('Please enter a product description', 'error'); return; }
+            if (selectedImages.length === 0) { showMessage('Please upload at least one product image', 'error'); return; }
+            
+            showMessage('Creating product...', 'info');
+            
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('description', description);
+            formData.append('features', JSON.stringify(features));
+            formData.append('specifications', JSON.stringify(Object.fromEntries(specifications.map(s => [s.key, s.value]))));
+            
+            selectedImages.forEach(image => {
+                formData.append('images', image);
+            });
+            
+            try {
+                const response = await fetch(`${currentBaseUrl}/api/products`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('✅ Product created successfully!', 'success');
+                    resetForm();
+                    loadRecentProducts();
+                    document.getElementById('recentProducts').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    showMessage('❌ Error: ' + (data.error || 'Failed to create product'), 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Network error: ' + error.message + '. Make sure backend is running at ' + currentBaseUrl, 'error');
+            }
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('formMessage');
+            const colors = {
+                success: 'bg-green-500/20 text-green-400 border-green-500/30',
+                error: 'bg-red-500/20 text-red-400 border-red-500/30',
+                info: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+            };
+            
+            messageDiv.innerHTML = `
+                <div class="p-4 rounded-xl border ${colors[type]}">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    ${text}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        function resetForm() {
+            document.getElementById('title').value = '';
+            document.getElementById('category').value = 'AriTech';
+            document.getElementById('description').value = '';
+            
+            features = [];
+            specifications = [];
+            selectedImages = [];
+            imagePreviews = [];
+            
+            renderFeatures();
+            renderSpecifications();
+            renderImages();
+            
+            showMessage('Form has been reset', 'info');
+        }
+        
+        async function loadRecentProducts() {
+            const container = document.getElementById('recentProducts');
+            container.innerHTML = '<div class="col-span-full text-center py-12"><div class="loading-spinner w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div><p class="text-zinc-400">Loading recent products...</p></div>';
+            
+            try {
+                const response = await fetch(`${currentBaseUrl}/api/products`);
+                const data = await response.json();
+                
+                if (data.success && data.products && data.products.length > 0) {
+                    const recent = data.products.slice(0, 3);
+                    container.innerHTML = recent.map(product => `
+                        <div class="bg-zinc-900/50 rounded-2xl overflow-hidden border border-white/10 hover:border-cyan-500/50 transition">
+                            ${product.images && product.images[0] ? `
+                                <img src="${product.images[0]}" alt="${escapeHtml(product.title)}" class="w-full h-48 object-cover">
+                            ` : `
+                                <div class="w-full h-48 bg-zinc-800 flex items-center justify-center">
+                                    <i class="fas fa-image text-4xl text-zinc-600"></i>
+                                </div>
+                            `}
+                            <div class="p-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded-full">${escapeHtml(product.category)}</span>
+                                </div>
+                                <h3 class="text-lg font-semibold text-white mb-2">${escapeHtml(product.title)}</h3>
+                                <p class="text-zinc-400 text-sm line-clamp-2">${escapeHtml(product.description)}</p>
+                                <div class="mt-3 text-xs text-zinc-500">
+                                    <i class="far fa-calendar-alt mr-1"></i>
+                                    ${new Date(product.createdAt).toLocaleDateString()}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="col-span-full text-center py-12"><i class="fas fa-box-open text-5xl text-zinc-600 mb-4"></i><p class="text-zinc-400">No products found. Create your first product above!</p></div>';
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
+                        <p class="text-zinc-400">Failed to load products. Make sure backend is running at: <code class="text-cyan-400">${currentBaseUrl}</code></p>
+                        <button onclick="testConnection()" class="mt-4 px-4 py-2 bg-cyan-500 text-zinc-950 rounded-lg text-sm font-medium">
+                            <i class="fas fa-plug mr-2"></i> Test Connection
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Make functions global
+        window.showConfigPanel = showConfigPanel;
+        window.saveBaseUrl = saveBaseUrl;
+        window.resetBaseUrl = resetBaseUrl;
+        window.testConnection = testConnection;
+        window.toggleConfig = toggleConfig;
+        window.addFeature = addFeature;
+        window.removeFeature = removeFeature;
+        window.addSpecification = addSpecification;
+        window.removeSpecification = removeSpecification;
+        window.handleImageUpload = handleImageUpload;
+        window.removeImage = removeImage;
+        window.resetForm = resetForm;
+        window.loadRecentProducts = loadRecentProducts;
+    </script>
+</body>
+</html>
