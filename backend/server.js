@@ -23,9 +23,9 @@ app.get('/', (req, res) => {
   });
 });
 
-/* ================= IMPORTANT FIX (CORS FOR DEPLOY) ================= */
+/* ================= CORS ================= */
 app.use(cors({
-  origin: '*', // allow all (important for Vercel frontend)
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -78,6 +78,9 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
+/* ================= HELPER ================= */
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
 /* ================= ROUTES ================= */
 
 // Config
@@ -106,14 +109,29 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// 🔥 ADD THIS (YOU WERE MISSING THIS ROUTE)
+// Get single product
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, error: 'Product not found' });
+    const { id } = req.params;
+
+    if (!id || id === 'null' || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid product ID'
+      });
     }
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
     res.json({ success: true, product });
+
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -144,16 +162,84 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
     await product.save();
 
     res.json({ success: true, product });
+
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Delete product
+// UPDATE product ✅
+app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || id === 'null' || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid product ID'
+      });
+    }
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    const { title, category, description } = req.body;
+
+    if (title) product.title = title;
+    if (category) product.category = category;
+    if (description) product.description = description;
+
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file =>
+        cloudinaryConfigured
+          ? file.path
+          : `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+      );
+      product.images = newImages;
+    }
+
+    await product.save();
+
+    res.json({
+      success: true,
+      product,
+      message: 'Product updated successfully'
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE product ✅
 app.delete('/api/products/:id', async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
+    const { id } = req.params;
+
+    if (!id || id === 'null' || !isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid product ID'
+      });
+    }
+
+    const deleted = await Product.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    res.json({ success: true, message: 'Product deleted' });
+
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
