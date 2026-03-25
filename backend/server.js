@@ -10,31 +10,25 @@ dotenv.config();
 
 const app = express();
 
-/* ================= ROOT ROUTE ================= */
+/* ================= ROOT ================= */
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: '🚀 SensorSpine Backend is Running!',
+    message: '🚀 SensorSpine Backend Running',
     endpoints: {
       products: '/api/products',
-      health: '/api/health',
-      config: '/api/config'
+      health: '/api/health'
     }
   });
 });
 
-/* ================= CORS ================= */
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
-
+/* ================= MIDDLEWARE ================= */
+app.use(cors({ origin: '*'}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-/* ================= CONFIG ================= */
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
+/* ================= HELPER ================= */
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /* ================= CLOUDINARY ================= */
 let upload;
@@ -61,16 +55,16 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
   upload = multer({ storage: multer.memoryStorage() });
 }
 
-/* ================= MONGODB ================= */
+/* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.log('❌ MongoDB Error:', err));
 
 /* ================= SCHEMA ================= */
 const productSchema = new mongoose.Schema({
-  title: String,
-  category: String,
-  description: String,
+  title: { type: String, required: true },
+  category: { type: String, required: true },
+  description: { type: String, required: true },
   images: [String],
   features: [String],
   deployableLink: String
@@ -78,28 +72,17 @@ const productSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', productSchema);
 
-/* ================= HELPER ================= */
-const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-
 /* ================= ROUTES ================= */
-
-// Config
-app.get('/api/config', (req, res) => {
-  res.json({
-    success: true,
-    baseUrl: API_BASE_URL
-  });
-});
 
 // Health
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
-// Get all products
+// Get all
 app.get('/api/products', async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -109,25 +92,19 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// Get single product
+// Get one
 app.get('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!id || id === 'null' || !isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid product ID'
-      });
+      return res.status(400).json({ success: false, error: 'Invalid product ID' });
     }
 
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        error: 'Product not found'
-      });
+      return res.status(404).json({ success: false, error: 'Product not found' });
     }
 
     res.json({ success: true, product });
@@ -137,14 +114,22 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-// Create product
+// Create
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
   try {
     const { title, category, description } = req.body;
 
+    // 🔥 Validation
+    if (!title || !category || !description) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title, category and description are required'
+      });
+    }
+
     let images = [];
 
-    if (req.files) {
+    if (req.files && req.files.length > 0) {
       images = req.files.map(file =>
         cloudinaryConfigured
           ? file.path
@@ -168,25 +153,19 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// UPDATE product ✅
+// Update
 app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!id || id === 'null' || !isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid product ID'
-      });
+      return res.status(400).json({ success: false, error: 'Invalid product ID' });
     }
 
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        error: 'Product not found'
-      });
+      return res.status(404).json({ success: false, error: 'Product not found' });
     }
 
     const { title, category, description } = req.body;
@@ -217,28 +196,22 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// DELETE product ✅
+// Delete
 app.delete('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!id || id === 'null' || !isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid product ID'
-      });
+      return res.status(400).json({ success: false, error: 'Invalid product ID' });
     }
 
     const deleted = await Product.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        error: 'Product not found'
-      });
+      return res.status(404).json({ success: false, error: 'Product not found' });
     }
 
-    res.json({ success: true, message: 'Product deleted' });
+    res.json({ success: true, message: 'Product deleted successfully' });
 
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
