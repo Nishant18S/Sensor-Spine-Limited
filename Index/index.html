@@ -1091,7 +1091,7 @@ body::after {
 
 <script>
 // ── Config ─────────────────────────────────────────────────
-const BASE = localStorage.getItem('sensorspine_base_url') || 'https://sensor-spine-limited-hopt.vercel.app';
+const BASE = "https://sensor-spine-limited-hopt.vercel.app";
 
 // ── State ──────────────────────────────────────────────────
 let allProducts  = [];
@@ -1316,23 +1316,52 @@ async function saveProduct(e) {
 // ── Delete product ─────────────────────────────────────────
 let pendingDeleteId = null;
 function confirmDelete(id, title) {
+  console.log("Confirm Delete ID:", id);
+
+  // 🚨 HARD BLOCK
+  if (!id || id === 'null' || id === undefined) {
+    toast("❌ Invalid product ID (frontend)", "error");
+    return;
+  }
+
   pendingDeleteId = id;
-  document.getElementById('confirmTitle').textContent = 'Delete "' + title + '"?';
-  document.getElementById('confirmDesc').textContent  = 'This will permanently remove the product and all its images. This action cannot be undone.';
+
+  document.getElementById('confirmTitle').textContent = `Delete "${title}"?`;
+  document.getElementById('confirmDesc').textContent  = 'This cannot be undone.';
   document.getElementById('confirmAction').onclick    = doDelete;
+
   document.getElementById('confirmOverlay').classList.add('open');
 }
 function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); pendingDeleteId = null; }
 async function doDelete() {
-  if (!pendingDeleteId) return;
+  console.log("Deleting ID:", pendingDeleteId);
+
+  if (!pendingDeleteId || pendingDeleteId === 'null') {
+    toast("❌ Invalid product ID (delete)", "error");
+    return;
+  }
+
   closeConfirm();
+
   try {
-    const r    = await fetch(`${BASE}/api/products/${pendingDeleteId}`, { method: 'DELETE' });
-    const data = await r.json();
-    if (!data.success) throw new Error(data.error);
-    toast('Product deleted.', 'success');
+    const res = await fetch(`${BASE}/api/products/${pendingDeleteId}`, {
+      method: 'DELETE'
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Delete failed");
+    }
+
+    toast("✅ Product deleted", "success");
+
     loadAllProducts();
-  } catch (e) { toast('Error: ' + e.message, 'error'); }
+
+  } catch (err) {
+    console.error(err);
+    toast("❌ " + err.message, "error");
+  }
 }
 
 // ── Feature helpers ────────────────────────────────────────

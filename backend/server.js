@@ -230,5 +230,14 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log('\n=================================');
+  console.log(`🚀 SENSORSPINE Backend Server`);
+  console.log(`📡 Server running on: http://localhost:${PORT}`);
+  console.log(`🔗 API endpoint: http://localhost:${PORT}/api/products`);
+  console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`\n✅ CORS enabled for all localhost ports`);
+  console.log(`✅ MongoDB: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'}`);
+  console.log(`✅ Cloudinary: ${cloudinaryConfigured ? 'Configured' : 'Not configured (using base64 for testing)'}`);
+  console.log(`✅ Features: Deployable Links Enabled`);
+  console.log('=================================\n');
 });
