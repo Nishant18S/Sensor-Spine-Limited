@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 
-/* ================= ROOT ROUTE (FIX ADDED) ================= */
+/* ================= ROOT ROUTE ================= */
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -23,18 +23,20 @@ app.get('/', (req, res) => {
   });
 });
 
-/* ================= CONFIG ================= */
+/* ================= IMPORTANT FIX (CORS FOR DEPLOY) ================= */
+app.use(cors({
+  origin: '*', // allow all (important for Vercel frontend)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
-
-/* ================= MIDDLEWARE ================= */
-
-app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-/* ================= CLOUDINARY ================= */
+/* ================= CONFIG ================= */
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
 
+/* ================= CLOUDINARY ================= */
 let upload;
 let cloudinaryConfigured = false;
 
@@ -60,13 +62,11 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
 }
 
 /* ================= MONGODB ================= */
-
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sensorspine')
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.log('❌ MongoDB Error:', err));
 
 /* ================= SCHEMA ================= */
-
 const productSchema = new mongoose.Schema({
   title: String,
   category: String,
@@ -98,8 +98,25 @@ app.get('/api/health', (req, res) => {
 
 // Get all products
 app.get('/api/products', async (req, res) => {
-  const products = await Product.find();
-  res.json({ success: true, products });
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json({ success: true, products });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 🔥 ADD THIS (YOU WERE MISSING THIS ROUTE)
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+    res.json({ success: true, product });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Create product
@@ -111,7 +128,9 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
 
     if (req.files) {
       images = req.files.map(file =>
-        cloudinaryConfigured ? file.path : `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
+        cloudinaryConfigured
+          ? file.path
+          : `data:${file.mimetype};base64,${file.buffer.toString('base64')}`
       );
     }
 
@@ -130,14 +149,17 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// DELETE
+// Delete product
 app.delete('/api/products/:id', async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
-/* ================= ERROR HANDLING ================= */
-
+/* ================= 404 ================= */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -146,7 +168,6 @@ app.use((req, res) => {
 });
 
 /* ================= SERVER ================= */
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
